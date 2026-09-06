@@ -1,6 +1,7 @@
 {
   "manifest_version": 3,
-  "name": "Data Entry Helper — Community Version",
+  "name": "TTHelper-SC — Community Edition",
+  "description": "Built by a sailing scheduler, for sailing schedulers.",
   "version": "1.0.0",
   "background": {
     "service_worker": "src/background.js"
