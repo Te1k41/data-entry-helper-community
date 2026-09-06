@@ -12,12 +12,4 @@ Built by a sailing scheduler, for sailing schedulers. This Chrome extension help
 
 Chrome will load the extension immediately. Keep this folder in place while the extension is installed.
 
-## What it can do
-- Scan & Save (automated due-service scanning)
-- Upload Proof
-- Full Live Check (proof/DOM-scrape comparison — the local duplicate-IMO consistency check is still included, since that part never needed a server)
-- Rename toggle (server-side downloaded-file renaming)
-- Schedule preview tools
-- Quiet background integrations (schedule snapshot sharing, service-code sharing, merge-download cleanup, Yang Ming schedule-table capture)
-
 See [FEATURES.md](FEATURES.md) for exactly what's included instead.
