@@ -1,0 +1,122 @@
+// ============================================================
+//  main.js
+//  Bootstrap file. Registers every feature and wires up the
+//  two global event listeners that drive the whole extension.
+//  This file must always load LAST (see manifest.json) since
+//  it references every feature object by name.
+// ============================================================
+
+// Global re-entrancy guard. When a feature writes a value into
+// a field using setFieldValue(), that fires a synthetic "change"
+// event, which would normally trigger this same listener again
+// and could cause an infinite loop of fields updating each other.
+// Writers increment/decrement a depth counter rather than toggling a boolean.
+// A nested writer can therefore finish without exposing the still-running
+// outer write to change handlers.
+let syncingDepth = 0;
+
+function beginSync() {
+    syncingDepth++;
+}
+
+function endSync() {
+    if (syncingDepth === 0) {
+        console.error("❌ Sync guard released without a matching acquisition");
+        return;
+    }
+    syncingDepth--;
+}
+
+function isSyncing() {
+    return syncingDepth > 0;
+}
+
+console.log("🚀 ETA-to-ETD Extension Loaded");
+
+// The feature registry. Every feature object must be listed here
+// or it will never run, even if its file is loaded in manifest.json.
+// Order in this array does NOT matter (unlike manifest.json's load
+// order) — these are just object references, not files.
+const FEATURES = [
+    NotesDateReplacement,
+    NotesSidebar,
+    SP001DateValidation,
+    DateSyncing,
+    ManualEtdHighlight,
+    ArrivalDepartOrderCheck,
+    PortDateOrderCheck,
+    InsertPort,
+    DeletePort,
+    PortActionHistory,
+    PortNameReminder,
+    VesselNameReminder,
+    PortHighlighting,
+    AwrFlag,
+    LastForeignPortCheck,
+    VesselVoyageCorrection,
+    DuplicateVessel,
+    DeleteVessel,
+    VesselActionHistory,
+    DuplicateVesselCheck,
+    DetectVesselNoDate,
+    DetectPortNoDate,
+    VesselTBA,
+    VDirection,
+    ResizeToggleOff,
+    ScheduleCascade,
+    VesselRecommendation,
+    RearrangeVessels,
+    KeyboardFieldNav,
+    SelectFieldOnFocus,
+    AutoNavSchedules,
+    DateStepButtons,
+    VoyageStepButtons,
+    DateCalculator,
+    LiveCheck,
+
+    // Add new features here ↓
+    // MyNewFeature,
+];
+
+function runFeature(feature, method, event) {
+    if (typeof feature[method] !== "function") return;
+    try {
+        feature[method](event);
+    } catch (err) {
+        const name = feature && feature.constructor && feature.constructor.name !== "Object"
+            ? feature.constructor.name
+            : FEATURES.findIndex(candidate => candidate === feature);
+        console.error(`❌ Feature ${method} failed (${name}):`, err);
+    }
+}
+
+// Run every feature's one-time setup once, when the content
+// script first loads (creates buttons, does an initial scan, etc.). A broken
+// feature is isolated so every later feature still receives this init pass.
+FEATURES.forEach(feature => runFeature(feature, "init"));
+
+// Single delegated listener on the whole document, using the
+// capture phase (the `true` third argument) so it fires before
+// the event reaches its target and can't be blocked by
+// stopPropagation() on the field itself. Every time ANY field
+// on the page fires "change", every feature gets a chance to react
+// — each feature decides for itself (usually via event.target.name)
+// whether it actually cares about this particular field.
+document.addEventListener("change", (event) => {
+    FEATURES.forEach(feature => runFeature(feature, "handle", event));
+}, true);
+
+// Same delegation pattern, but for "blur" (focus leaving a field).
+// Only calls handleBlur on features that define it — this is an
+// optional part of the feature interface, most features don't need it.
+document.addEventListener("blur", (event) => {
+    FEATURES.forEach(feature => runFeature(feature, "handleBlur", event));
+}, true);
+
+// Same again, but for "focus" (a field gaining focus). Like "blur",
+// "focus" doesn't bubble on its own — capture phase (the `true` third
+// argument) is what makes delegating it from one document-level listener
+// work. Optional part of the feature interface, most features don't need it.
+document.addEventListener("focus", (event) => {
+    FEATURES.forEach(feature => runFeature(feature, "handleFocus", event));
+}, true);
