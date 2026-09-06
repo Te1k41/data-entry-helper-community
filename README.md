@@ -12,8 +12,7 @@ Built by a sailing scheduler, for sailing schedulers. This Chrome extension help
 
 Chrome will load the extension immediately. Keep this folder in place while the extension is installed.
 
-A handful of workstation-specific features from the full version depend on a local relay server that only makes sense on the original developer's own machine, so they're left out of this build entirely rather than shipped as disabled buttons:
-
+## What it can do
 - Scan & Save (automated due-service scanning)
 - Upload Proof
 - Full Live Check (proof/DOM-scrape comparison — the local duplicate-IMO consistency check is still included, since that part never needed a server)
