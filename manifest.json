@@ -13,7 +13,8 @@
     "scripting"
   ],
   "host_permissions": [
-    "http://localhost:3737/*"
+    "http://localhost:3737/*",
+    "https://www.tradetech.net/*"
   ],
   "action": {},
   "content_scripts": [
@@ -44,7 +45,6 @@
         "src/features/port-highlighting.js",
         "src/features/awr-flag.js",
         "src/features/last-foreign-port-check.js",
-        "src/features/vessel-correction.js",
         "src/features/duplicate-vessel.js",
         "src/features/duplicate-vessel-check.js",
         "src/features/vessel-no-date.js",

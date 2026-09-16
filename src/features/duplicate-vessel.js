@@ -24,11 +24,10 @@
 //      same reasoning insert-port.js documents for port_code: this is
 //      relocating already-valid data, not creating new data)
 //    - start_voyage bumped by voyage_increment_by (same increment
-//      logic as "🛠 Fix Vessel Dates" and the [-][+] voyage step
-//      buttons — see VesselVoyageCorrection.getVoyageIncrement() /
-//      VoyageUtils.step() in src/utils/voyage.js)
-//    - NO depart_date at all — left completely blank, unlike Fix
-//      Vessel Dates which always assigns one
+//      logic as the [-][+] voyage step buttons — see
+//      VoyageUtils.getIncrement() / VoyageUtils.step() in
+//      src/utils/voyage.js)
+//    - NO depart_date at all — left completely blank
 //  Deliberately does NOT wrap the name/voyage writes in the `syncing`
 //  guard — a duplicated voyage number should behave exactly like one
 //  typed by hand, including voyage-direction.js appending a compass
@@ -38,10 +37,9 @@
 //  affected by this.
 //
 //  🗑 Delete — the inverse: clears that row's vessel name, Lloyds
-//  code, voyage number, and departure date back to blank — no confirm
-//  prompt (see ↩ Restore below). Doesn't touch One-off or Skipped
-//  Ports — out of scope, this session's vessel features only ever
-//  operate on name/code/voyage/date.
+//  code, voyage number, departure date, and One-off checkbox back to
+//  blank/unchecked — no confirm prompt (see ↩ Restore below). Doesn't
+//  touch Skipped Ports — still out of scope, unrelated to a vessel row.
 // ─────────────────────────────────────────────────────
 
 function vesselCodeField(row) {
@@ -65,8 +63,7 @@ function writeVesselCode(row, values) {
     const codeField = VesselRow.field(row, "lloyds_code");
     if (codeField && values.code !== null) {
         codeField.value = values.code;
-        const pvCode = document.querySelector(`input[name="PV_${codeField.name}"]`);
-        if (pvCode) pvCode.value = values.code;
+        mirrorPvShadow(codeField, values.code);
     }
 }
 
@@ -100,6 +97,8 @@ const VesselActionHistory = {
     },
 
     init() {
+        if (!isOnScheduleForm()) return;
+
         Toolbar.register({
             id:      "tt-vessel-restore",
             label:   "↩ Restore Vessel",
@@ -156,15 +155,36 @@ const DuplicateVessel = {
         // been duplicated at least once this page-session. Lets repeated
         // clicks on the SAME original row chain the voyage forward
         // (201 -> 202 -> 203) instead of recomputing from the unchanged
-        // source every time — see duplicate()'s `chain` parameter.
-        let lastVoyage = null;
+        // source every time — see duplicate()'s `chain` parameter. Stores
+        // the target FIELD alongside the value (not just the value) so
+        // duplicate() can check the actual screen state before trusting
+        // it — confirmed real bug: deleting the row this chained into
+        // used to leave the chain still remembering that voyage number,
+        // so the NEXT duplicate kept incrementing from a row that no
+        // longer exists on screen instead of restarting from the source.
+        let lastChain = { value: null, field: null };
 
         btn.addEventListener("click", (e) => {
             e.preventDefault();
-            this.duplicate(field, {
-                get: () => lastVoyage,
-                set: (value) => { lastVoyage = value; }
+
+            const doDuplicate = () => this.duplicate(field, {
+                get: () => lastChain,
+                set: (next) => { lastChain = next; }
             });
+
+            // If a Lloyds code was just typed, Tradetech fills vessel_name
+            // asynchronously (plain .value assignment, no "change" event) —
+            // clicking Duplicate before that lands would copy a still-blank
+            // name. Only wait when there's actually a code to look up a name
+            // for; a genuinely empty row (no code either) should still hit
+            // duplicate()'s own "Nothing to duplicate" banner immediately.
+            const rowMatch = field.name.match(/^SV(\d+)_vessel_name$/);
+            const codeField = rowMatch ? vesselCodeField(rowMatch[1]) : null;
+            if (codeField && codeField.value.trim() && !field.value.trim()) {
+                waitForFieldValue(field, doDuplicate);
+            } else {
+                doDuplicate();
+            }
         });
 
         insertActionButtonAfter(field, btn);
@@ -221,27 +241,32 @@ const DuplicateVessel = {
         const oldTargetName   = target.nameField.value;
         const oldTargetVoyage = targetVoyageField ? targetVoyageField.value : null;
         const oldTargetCode   = readVesselCode(target.row);
-        const previousLastVoyage = chain.get();
+        const previousChain = chain.get();
+
+        // Only trust the remembered chain value if the row it landed in
+        // still actually shows it RIGHT NOW — if that row was since
+        // deleted (or edited), the memory is stale and shouldn't drive
+        // another increment; treat this click as a fresh start instead.
+        const chainStillOnScreen = previousChain.field && previousChain.field.value === previousChain.value;
+        const previousLastVoyage = chainStillOnScreen ? previousChain.value : null;
 
         VesselActionHistory.push({
             label: `Duplicate → SV${target.row} ("${vesselName}")`,
             restore: () => {
                 setFieldValue(target.nameField, oldTargetName);
-                const pvName = document.querySelector(`input[name="PV_${target.nameField.name}"]`);
-                if (pvName) pvName.value = target.nameField.value;
+                mirrorPvShadow(target.nameField, target.nameField.value);
 
                 writeVesselCode(target.row, oldTargetCode);
 
                 if (targetVoyageField) {
                     setFieldValue(targetVoyageField, oldTargetVoyage);
-                    const pvVoyage = document.querySelector(`input[name="PV_${targetVoyageField.name}"]`);
-                    if (pvVoyage) pvVoyage.value = targetVoyageField.value;
+                    mirrorPvShadow(targetVoyageField, targetVoyageField.value);
                 }
 
                 // Roll the voyage chain back too, so the next click on
                 // this same button continues from before this (now-
                 // undone) duplicate, not from its result.
-                chain.set(previousLastVoyage);
+                chain.set(previousChain);
             }
         });
 
@@ -250,8 +275,7 @@ const DuplicateVessel = {
         // Tradetech keeps a hidden PV_ duplicate of vessel_name too
         // (confirmed live: PV_SV001_vessel_name) — mirror it directly,
         // same as the voyage field below.
-        const pvNameField = document.querySelector(`input[name="PV_${target.nameField.name}"]`);
-        if (pvNameField) pvNameField.value = target.nameField.value;
+        mirrorPvShadow(target.nameField, target.nameField.value);
 
         // Lloyds code is the row's real identity now — copy it too,
         // plain (no re-validation), same reasoning as port_code in
@@ -261,7 +285,7 @@ const DuplicateVessel = {
         console.log(`⧉ Duplicated ${sourceNameField.name} → ${target.nameField.name}: "${vesselName}" (code ${sourceCodeField.value})`);
 
         if (sourceVoyageField && targetVoyageField) {
-            const increment = VesselVoyageCorrection.getVoyageIncrement();
+            const increment = VoyageUtils.getIncrement();
 
             // increment > 0: chain forward from the LAST voyage this same
             // button produced (not the source's unchanged DOM value), so
@@ -284,12 +308,11 @@ const DuplicateVessel = {
 
                 // Mirror into the hidden PV_ duplicate, same as every other
                 // feature that writes a voyage code.
-                const pvField = document.querySelector(`input[name="PV_${targetVoyageField.name}"]`);
-                if (pvField) pvField.value = targetVoyageField.value;
+                mirrorPvShadow(targetVoyageField, targetVoyageField.value);
 
                 console.log(`🔢 ${targetVoyageField.name} → ${targetVoyageField.value}`);
 
-                chain.set(newCode);
+                chain.set({ value: newCode, field: targetVoyageField });
             }
         }
 
@@ -368,51 +391,62 @@ const DeleteVessel = {
         const vesselName = nameField.value.trim();
         const voyageField = document.querySelector(`input[name="SV${row}_start_voyage"]:not([name^="PV_"])`);
         const dateField   = document.querySelector(`input[name="SV${row}_depart_date"]:not([name^="PV_"])`);
+        const oneOffField = document.querySelector(`input[name="SV${row}_one-off"]`);
 
         // Capture everything BEFORE clearing it, so Restore can put it
         // all back exactly as it was.
-        const oldName   = nameField.value;
-        const oldCode   = readVesselCode(row);
-        const oldVoyage = voyageField ? voyageField.value : null;
-        const oldDate   = dateField ? dateField.value : null;
+        const oldName    = nameField.value;
+        const oldCode    = readVesselCode(row);
+        const oldVoyage  = voyageField ? voyageField.value : null;
+        const oldDate    = dateField ? dateField.value : null;
+        const oldOneOff  = oneOffField ? oneOffField.checked : null;
 
         VesselActionHistory.push({
             label: `Delete SV${row} ("${vesselName}")`,
             restore: () => {
                 setFieldValue(nameField, oldName);
-                const pvName = document.querySelector(`input[name="PV_${nameField.name}"]`);
-                if (pvName) pvName.value = nameField.value;
+                mirrorPvShadow(nameField, nameField.value);
 
                 writeVesselCode(row, oldCode);
 
                 if (voyageField) {
                     setFieldValue(voyageField, oldVoyage);
-                    const pvVoyage = document.querySelector(`input[name="PV_${voyageField.name}"]`);
-                    if (pvVoyage) pvVoyage.value = voyageField.value;
+                    mirrorPvShadow(voyageField, voyageField.value);
                 }
 
                 // Same as the forward delete — depart_date's own inline
                 // onchange handles its PV_ shadow and day-of-week field.
                 if (dateField) setFieldValue(dateField, oldDate);
+
+                if (oneOffField && oldOneOff !== null) {
+                    oneOffField.checked = oldOneOff;
+                    oneOffField.dispatchEvent(new Event("change", { bubbles: true }));
+                }
             }
         });
 
         setFieldValue(nameField, "");
-        const pvNameField = document.querySelector(`input[name="PV_${nameField.name}"]`);
-        if (pvNameField) pvNameField.value = "";
+        mirrorPvShadow(nameField, "");
 
         writeVesselCode(row, { codeD: "", code: "" });
 
         if (voyageField) {
             setFieldValue(voyageField, "");
-            const pvVoyageField = document.querySelector(`input[name="PV_${voyageField.name}"]`);
-            if (pvVoyageField) pvVoyageField.value = "";
+            mirrorPvShadow(voyageField, "");
         }
 
         // depart_date's own inline onchange (dateformat/dowFunc) handles
         // its PV_ shadow and the day-of-week field itself — same as
         // date-step-buttons.js relies on, no manual mirroring needed here.
         if (dateField) setFieldValue(dateField, "");
+
+        // A cleared row shouldn't still claim to be a "one-off" exception —
+        // that only means something in relation to an actual vessel
+        // occupying the row (see live-check.js's checkDuplicateImos()).
+        if (oneOffField) {
+            oneOffField.checked = false;
+            oneOffField.dispatchEvent(new Event("change", { bubbles: true }));
+        }
 
         console.log(`🗑 Cleared vessel row SV${row} (was "${vesselName}")`);
 
