@@ -41,6 +41,7 @@ const FEATURES = [
     NotesDateReplacement,
     NotesSidebar,
     SP001DateValidation,
+    SaveConfirmation,
     DateSyncing,
     ManualEtdHighlight,
     ArrivalDepartOrderCheck,

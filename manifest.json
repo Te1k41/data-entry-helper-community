@@ -36,6 +36,7 @@
         "src/features/notes.js",
         "src/features/notes-sidebar.js",
         "src/features/validation.js",
+        "src/features/save-confirmation.js",
         "src/features/date-syncing.js",
         "src/features/manual-etd-highlight.js",
         "src/features/arrival-depart-order-check.js",
