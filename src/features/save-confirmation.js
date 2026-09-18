@@ -190,7 +190,19 @@ const SaveConfirmation = {
         box.appendChild(list);
         box.appendChild(footer);
         overlay.appendChild(box);
-        topDoc.body.appendChild(overlay);
+
+        // topDoc.body is NOT necessarily a real <body> — per the HTML
+        // spec, "the body element" of a frameset document IS the
+        // <frameset> element itself (this page has no <body> at all).
+        // A <frameset> only lays out <frame> children per its own
+        // cols/rows grid; any other appended child (our overlay) gets
+        // no layout slot and silently never paints, even though the
+        // DOM insertion itself succeeds with no error — confirmed live
+        // (all the way through "showing overlay" logged, nothing ever
+        // appeared). <html> has no such restriction, so that's the
+        // real fix, not .body.
+        const container = topDoc.body?.tagName === "BODY" ? topDoc.body : topDoc.documentElement;
+        container.appendChild(overlay);
     },
 
     // Delegated on `document` by SELECTOR MATCH, not bound to one
@@ -224,7 +236,9 @@ const SaveConfirmation = {
             // UI itself couldn't be shown.
             try {
                 const rows = this.buildRotationRows(formDoc);
+                console.log(`💾 Built ${rows.length} rotation row(s) — showing overlay`);
                 this.showOverlay(rows, () => {
+                    console.log("💾 Confirmed — invoking original Save handler");
                     if (typeof button.onclick === "function") button.onclick();
                 });
             } catch (err) {
