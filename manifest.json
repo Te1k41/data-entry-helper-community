@@ -10,7 +10,8 @@
     "downloads",
     "storage",
     "activeTab",
-    "scripting"
+    "scripting",
+    "nativeMessaging"
   ],
   "host_permissions": [
     "http://localhost:3737/*",
@@ -66,7 +67,8 @@
         "src/features/voyage-step-buttons.js",
         "src/features/date-calculator.js",
         "src/features/live-check.js",
-        "src/main.js"
+        "src/main.js",
+        "src/features/update-extension-native.js"
       ],
       "all_frames": true,
       "run_at": "document_idle"
@@ -94,5 +96,6 @@
       ],
       "run_at": "document_idle"
     }
-  ]
+  ],
+  "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA4MleOdGoIGRg8ccVFpNAPcM+Rg9kl9+BnKq4U+tZ2HkjI6Bddm2c82j67P5CURjDb/mMvH9b8QSmNaLiZNG6ds01ozduN6iOTNOqdvh1WP/knEZ8NKikIzVNPbfY0ALDl1uZyD41RKfA+hbnLDt6e2XrP1CaBcVh2I4E3f4X7rzxqhjIDlHeaXeGKl4ppZIaW8BnQBpj/AMaNwDTyO38+ctqFUGt0n2iXtie4Q38z7QAB+jQaMe9p+RAtdqpTzFEQtnIPmQexXZeWtqUcu9koa+hn+II3tlBGjaB707dwIenSn6054euIHTfg+jVP+/sAxZQcMbmK4HZQKsqiLvVNQIDAQAB"
 }
