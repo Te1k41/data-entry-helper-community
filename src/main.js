@@ -80,6 +80,7 @@ const FEATURES = [
     DuplicateVesselCheck,
     FixVesselDates,
     CustomRulesSettings,
+    HighlighterSettings,
     DetectVesselNoDate,
     DetectPortNoDate,
     VesselTBA,
