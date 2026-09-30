@@ -44,6 +44,7 @@
       "js": [
         "src/utils/date.js",
         "src/utils/toolbar.js",
+        "src/utils/draggable-panel.js",
         "src/utils/banner.js",
         "src/utils/dom.js",
         "src/utils/voyage.js",
