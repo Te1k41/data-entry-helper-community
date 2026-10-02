@@ -2,7 +2,6 @@
 // Full Page Capture always runs. Rename-state sync, DOM-scrape
 // relaying, and schedule HTML side-capture live in the relay companion.
 // ============================================================
-importScripts("background-relay.js");
 
 // The imported companion may already have registered a side-capture.
 var fpcExtraCaptures = globalThis.fpcExtraCaptures || [];
