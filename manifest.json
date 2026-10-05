@@ -11,6 +11,7 @@
     "storage",
     "activeTab",
     "scripting",
+    "notifications",
     "nativeMessaging"
   ],
   "host_permissions": [
