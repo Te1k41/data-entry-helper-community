@@ -286,7 +286,13 @@ const PortHighlighting = {
     // (Los Angeles) was invisible to leg 2's scan for exactly this
     // reason, so the whole thing fell through to leg 1, then all the
     // way back to true SP001 (Singapore) — the wrong port entirely.
-    findHighlightInWindow(fields, biasFirst, precedingField = null) {
+    //
+    // `lastRegionWins`: the LAST region entered wins outright, rank ignored —
+    // for an East/West one-bound service, where the bound is heading is the
+    // point. Confirmed on AL5-E (Miami, Panama, Los Angeles, Oakland, Panama,
+    // Caucedo, Southampton…): Southampton, not Los Angeles. Same on TA11-E
+    // (Houston -> Europe).
+    findHighlightInWindow(fields, biasFirst, precedingField = null, lastRegionWins = false) {
         if (fields.length === 0) return null;
 
         // ── Generic scan: collect every valid category-change candidate ──
@@ -313,6 +319,7 @@ const PortHighlighting = {
         }
 
         if (candidates.length === 0) return null;
+        if (lastRegionWins) return candidates[candidates.length - 1].field;
 
         // Best-ranked category wins; ties broken by direction.
         const bestRank      = Math.min(...candidates.map(c => c.rank));
@@ -463,7 +470,12 @@ const PortHighlighting = {
             highlightField = this.findHighlightInWindow(leg2Fields, true, precedingField)
                 || this.findHighlightInWindow(leg1Fields, true);
         } else {
-            highlightField = this.findHighlightInWindow(portNameFields, biasFirst);
+            // East/West one-bound service: where the bound heads wins over rank.
+            // ponytail: N/S and letter suffixes keep rank — NASP-N (Savannah, then
+            // Europe) is confirmed Savannah.
+            const service = document.querySelector('input[type="text"][name="service"]')?.value.trim() || "";
+            const eastWest = suffixDirectional && /-[EW]d*$/i.test(service);
+            highlightField = this.findHighlightInWindow(portNameFields, biasFirst, null, eastWest);
         }
 
         // Nothing found at all (route never leaves one broad category —
