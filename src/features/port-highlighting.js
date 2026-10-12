@@ -287,12 +287,12 @@ const PortHighlighting = {
     // reason, so the whole thing fell through to leg 1, then all the
     // way back to true SP001 (Singapore) — the wrong port entirely.
     //
-    // `lastRegionWins`: the LAST region entered wins outright, rank ignored —
-    // for an East/West one-bound service, where the bound is heading is the
-    // point. Confirmed on AL5-E (Miami, Panama, Los Angeles, Oakland, Panama,
-    // Caucedo, Southampton…): Southampton, not Los Angeles. Same on TA11-E
-    // (Houston -> Europe).
-    findHighlightInWindow(fields, biasFirst, precedingField = null, lastRegionWins = false) {
+    // `homeCat` (one-bound services): the region the route starts in. Coming
+    // back into it loses to entering any OTHER special region — a new region
+    // is where the service is going. Confirmed on AL5-E (Miami, Panama, Los
+    // Angeles, Oakland, Panama, Caucedo, Southampton…): Southampton, not Los
+    // Angeles. Only home entries? They all stay (rank as usual).
+    findHighlightInWindow(fields, biasFirst, precedingField = null, homeCat = null) {
         if (fields.length === 0) return null;
 
         // ── Generic scan: collect every valid category-change candidate ──
@@ -314,12 +314,13 @@ const PortHighlighting = {
 
             if (currentCat === "OTHER") continue; // leaving a category never counts
             if (currentCat !== aboveCat) {
-                candidates.push({ field: current, rank: this.CATEGORY_RANK[currentCat] });
+                candidates.push({ field: current, cat: currentCat, rank: this.CATEGORY_RANK[currentCat] });
             }
         }
 
         if (candidates.length === 0) return null;
-        if (lastRegionWins) return candidates[candidates.length - 1].field;
+        const away = candidates.filter(c => c.cat !== homeCat);
+        if (homeCat && away.length) candidates.splice(0, candidates.length, ...away);
 
         // Best-ranked category wins; ties broken by direction.
         const bestRank      = Math.min(...candidates.map(c => c.rank));
@@ -470,12 +471,10 @@ const PortHighlighting = {
             highlightField = this.findHighlightInWindow(leg2Fields, true, precedingField)
                 || this.findHighlightInWindow(leg1Fields, true);
         } else {
-            // East/West one-bound service: where the bound heads wins over rank.
-            // ponytail: N/S and letter suffixes keep rank — NASP-N (Savannah, then
-            // Europe) is confirmed Savannah.
-            const service = document.querySelector('input[type="text"][name="service"]')?.value.trim() || "";
-            const eastWest = suffixDirectional && /-[EW]d*$/i.test(service);
-            highlightField = this.findHighlightInWindow(portNameFields, biasFirst, null, eastWest);
+            // One-bound service: its first port's region is "home" (see findHighlightInWindow).
+            const firstPort = suffixDirectional ? portNameFields.find(f => f.value.trim()) : null;
+            const homeCat = firstPort ? this.getPortCategory(firstPort.value) : null;
+            highlightField = this.findHighlightInWindow(portNameFields, biasFirst, null, homeCat);
         }
 
         // Nothing found at all (route never leaves one broad category —
