@@ -15,7 +15,6 @@
     "nativeMessaging"
   ],
   "host_permissions": [
-    "http://localhost:3737/*",
     "https://www.tradetech.net/*"
   ],
   "action": {},
