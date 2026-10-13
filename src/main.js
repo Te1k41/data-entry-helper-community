@@ -85,7 +85,6 @@ const FEATURES = [
     DetectPortNoDate,
     VesselTBA,
     VDirection,
-    ResizeToggleOff,
     ScheduleCascade,
     VesselRecommendation,
     RearrangeVessels,

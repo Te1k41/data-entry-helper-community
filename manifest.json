@@ -38,8 +38,7 @@
   "content_scripts": [
     {
       "matches": [
-        "https://www.tradetech.net/*",
-        "https://mergeimagesonline.com/*"
+        "https://www.tradetech.net/*"
       ],
       "js": [
         "src/utils/date.js",
@@ -76,7 +75,6 @@
         "src/features/port-no-date.js",
         "src/features/vessel-to-be-announced.js",
         "src/features/voyage-direction.js",
-        "src/features/resize-toggle.js",
         "src/features/schedule-cascade.js",
         "src/features/vessel-recommendation.js",
         "src/features/rearrange-vessels.js",

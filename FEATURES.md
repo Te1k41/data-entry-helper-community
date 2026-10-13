@@ -50,7 +50,6 @@ This guide describes what the extension currently does. Most Tradetech helpers r
 - **Notes date refresh:** On page load, replaces six-digit or `MM/DD/YY` dates already present in the notes field with today's date, preserving the original slash/no-slash style.
 - **Notes sidebar:** When a notes field exists, creates a collapsible, always-visible sidebar. Editing either the sidebar or Tradetech's original notes box updates the other.
 - **Saved text highlights:** On any injectable web page, select text and press Ctrl+D to mark it yellow. Click a saved mark to remove it. Highlights are stored for that exact page and restored on reload; Chrome's built-in PDF viewer is not supported.
-- **Merge-site resize setting:** On mergeimagesonline.com, waits for the resize switch and turns image resizing off automatically.
 
 ## Navigation and interface
 
