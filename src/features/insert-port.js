@@ -55,10 +55,6 @@ function portField(row, suffix) {
     return PortRow.field(row, suffix);
 }
 
-function portDateField(row, which) {
-    return PortRow.field(row, `${which}_date`);
-}
-
 // Reads every field this feature cares about for one row into a plain
 // object — used both to snapshot a row before touching it (for Restore)
 // and to read the SOURCE row's values during a shift.
