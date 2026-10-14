@@ -1,3 +1,6 @@
+// utils/date.js — DateUtils: parse, format and compare Tradetech's
+// MM/DD/YY dates. Pure helpers, no DOM.
+
 const DateUtils = {
     // Strips non-digits so "06/25/26" and "062526" both become "062526"
     // if dateStr is empty or invalid, return nothing

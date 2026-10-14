@@ -1,3 +1,7 @@
+// core/boundary.js — PortSyncBoundary: finds where a route loops back
+// (from the service's port_key), shared by date syncing, manual-ETD
+// highlight, port highlighting and save confirmation.
+
 const PortSyncBoundary = {
     // Parses a port_key into its Start/End compass directions.
     // Each 2-character chunk is [DIRECTION][S|E] — the letter is which

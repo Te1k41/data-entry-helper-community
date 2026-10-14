@@ -1,6 +1,6 @@
 // ─────────────────────────────────────────────────────
-//  FEATURE: Your Feature Name
-//  One sentence describing what this does
+//  FEATURE: Detect Vessel No Date
+//  Flags vessel rows that have a vessel name but no departure date.
 // ─────────────────────────────────────────────────────
 const DetectVesselNoDate = {
 
