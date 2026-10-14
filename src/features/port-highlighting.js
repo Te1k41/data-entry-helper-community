@@ -422,7 +422,7 @@ const PortHighlighting = {
         const biasFirst = !!pivotRow;
 
         // Directional services loop back to their own start — drop the loop
-        // closure (real last port + last repeat of the first port) so it
+        // closure (the real last port only) so it
         // can't count as a fake region-change candidate. Scoped to
         // suffixDirectional only, not the broader biasFirst — a
         // full-bound/pivot route isn't a same-origin loop.
