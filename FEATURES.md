@@ -12,6 +12,7 @@ This guide describes what the extension currently does. Most Tradetech helpers r
 - **Duplicate vessel rows:** On load and after vessel edits, flags rows that repeat the same Lloyds/IMO code and the same voyage number.
 - **Last Foreign Port rule:** Keeps Last Foreign Port consistent with the form: it is required when AWR is Yes and First USA Port is filled, and expected to be blank otherwise.
 - **Live Check (duplicate-IMO check):** This build includes only the local part of Live Check: when the same vessel (same Lloyds/IMO code) appears in more than one row, exactly one of those rows must stay unticked One-off — any other count is flagged. The full version's proof/DOM-scrape comparison against a downloaded schedule needs the local relay server and isn't included here.
+- **Save confirmation (optional):** With the **Confirm rotation before Save** rule on, clicking Save first shows the whole port rotation in a full-screen overlay; with **Block Save on SP001 mismatch** on, Save is held while SP001 doesn't match a vessel date. Both are off by default.
 - **Shared warning area:** Warnings from the checks above are combined into one stacked banner area instead of replacing one another. Temporary confirmations and informational notices use the same top-right notification area.
 
 ## Port helpers
@@ -20,13 +21,14 @@ This guide describes what the extension currently does. Most Tradetech helpers r
 - **Delete Port:** Adds a per-row delete control that removes a port and shifts later port data upward — including shifting later ports up when the row you delete is itself already empty, closing the gap.
 - **Restore Port Action:** The Tools panel can undo recent insert/delete port actions from the current page session.
 - **Port name reminder:** While an arrival or departure field has focus, shows the corresponding port name in a small floating label; it follows scrolling and disappears on blur.
-- **Region-entry highlighting:** Automatically highlights one significant port where the route enters the USA/Canada, Japan, EU, or UK. It prefers Tradetech's First USA/First EU fields when available, otherwise chooses from category changes in the port sequence.
+- **Region-entry highlighting:** Automatically highlights one significant port where the route enters the USA/Canada, Japan, EU, or UK. It looks at every port-to-port change in the sequence and picks the one entering the highest-ranked region. (Tradetech's First USA/First EU fields are deliberately not used; on some routes they point at the wrong port.)
 - **Manual ETD highlighting:** If the route loops back to its starting port, departure dates entered beyond that auto-sync boundary are highlighted as manual values.
 - **AWR suggestion:** On load and relevant port/radio changes, suggests AWR = Yes when the schedule calls a US port AND transits the Panama Canal, or the service is on the always-AWR list (edit it with **⚙️ AWR Services** in Tools). It never changes AWR by itself: the warning has an **Apply** button, and only that click sets the radio.
 
 ## Vessel and voyage helpers
 
 - **Duplicate Vessel:** Adds a copy control beside each vessel. It copies the vessel into the next empty vessel row, including its Lloyds/IMO identity, and steps the voyage number forward by the page's configured increment. Duplicating the same vessel repeatedly chains the voyage number forward each click (e.g. 201 → 202 → 203) rather than repeating the same number; a negative or zero increment keeps every duplicate's voyage number the same as the source instead of stepping it.
+- **Fix Vessel Dates (optional):** With the **Enable Fix Vessel Dates** rule on, a Tools button pushes vessels dated before SP001 forward in weekly steps and bumps their voyage numbers.
 - **Delete Vessel:** Adds a per-row delete control that clears that row's name, Lloyds code, voyage number, departure date, and One-off checkbox.
 - **Restore Vessel Action:** The Tools panel can undo recent duplicate/delete vessel actions from the current page session.
 - **Rearrange Vessels:** Manually sorts the visible vessel table by departure date, earliest first. Undated rows remain at the end in their existing relative order.
@@ -49,14 +51,15 @@ This guide describes what the extension currently does. Most Tradetech helpers r
 
 - **Notes date refresh:** On page load, replaces six-digit or `MM/DD/YY` dates already present in the notes field with today's date, preserving the original slash/no-slash style.
 - **Notes sidebar:** When a notes field exists, creates a collapsible, always-visible sidebar. Editing either the sidebar or Tradetech's original notes box updates the other.
-- **Saved text highlights:** On any injectable web page, select text and press Ctrl+D to mark it yellow. Click a saved mark to remove it. Highlights are stored for that exact page and restored on reload; Chrome's built-in PDF viewer is not supported.
+- **Saved text highlights:** On any web page, select text and press Ctrl+Shift+H (highlight slot 1). Up to four slots, each with its own colour and keyboard shortcut, are set in Tools → **Highlighter**. Click a saved mark to remove it. Highlights are stored in this browser for that page and restored on reload; Chrome's built-in PDF viewer is not supported.
 
 ## Navigation and interface
 
-- **Tools panel:** Collects actions into Vessel, Port, Date, Proof, and Other groups. It can be collapsed, dragged, and reordered; layout choices are saved locally per tab (no cross-tab sync in this build, since that needs the relay). **Reset Layout** restores default tool and row-button positions.
+- **Tools panel:** Collects actions into Vessel, Port, Date, Proof, and Other groups. It can be collapsed, dragged, and reordered; layout choices are saved in the browser for the Tradetech site. **Reset Layout** restores default tool and row-button positions.
 - **Spreadsheet-style field navigation:** Arrow keys move between SP/SV fields when the text cursor is at the relevant edge. Tab and Shift+Tab cycle specifically through port arrival/departure fields, selecting the destination value.
 - **Select on focus:** Selects the full contents of supported text fields when they receive focus, making replacement typing faster.
 - **Automatic schedule navigation:** Once per calendar day, looks for Tradetech's Data Input and Sailing Schedules links after login and clicks through to the schedule search flow. Per-tab flags prevent repeated clicks during that run.
+- **Custom Rules:** Tools → **Custom Rules** lists optional business rules as ON/OFF switches (for example, allowing same-voyage duplicates when the voyage increment is negative, or the optional Save confirmation and Fix Vessel Dates above).
 - **Normal tabs instead of popup windows:** When a website calls `window.open` with popup-window options, opens the destination as a normal background tab instead. Ordinary `window.open` calls without popup options are unchanged.
 - **Full-page capture:** Clicking the extension's toolbar icon captures and stitches the current page into a PNG download.
 
@@ -69,6 +72,7 @@ The following features from the full extension all depend on the local relay ser
 - Live Check's proof/DOM-scrape comparison (the local duplicate-IMO check above is still included)
 - Rename toggle (server-side downloaded-file renaming)
 - Schedule preview tools (Open Proof File / Mark Done)
+- AWR Audit (batch AWR correction) and Rotation Receipt capture
 - A few quiet background integrations with no visible UI of their own: schedule-snapshot sharing, service-code sharing, merge-download cleanup, and Yang Ming schedule-table capture
 
 ## Update Extension button
