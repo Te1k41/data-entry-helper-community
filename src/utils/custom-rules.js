@@ -90,7 +90,7 @@ const CustomRules = {
         {
             id:          "enableAwrAudit",
             label:       "Enable Audit AWR",
-            description: "Adds a \"🔍 Audit AWR\" Tools-panel button that re-checks AWR on every relay-tracked record in background tabs, fixing and saving only the ones that are wrong. Off by default — opt-in rather than always-on, same as Fix Vessel Dates.",
+            description: "Adds a \"🔍 Audit AWR\" Tools-panel button that checks AWR on every relay-tracked record in background tabs and reports the ones that look wrong (a CSV in Downloads). It never changes or saves anything. Off by default — opt-in rather than always-on, same as Fix Vessel Dates.",
             default:     false
         },
         {
