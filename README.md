@@ -38,7 +38,7 @@ Maintained by Kai (Team Vietnam). This is the version used by the team; new feat
 
 ## How it was made
 
-The rules and checks come from daily sailing-schedule work. Most of the code was written with AI coding assistants (Claude Code) under Kai's direction, and every change is tested on real schedules.
+The rules and checks come from daily sailing-schedule work. Built with the help of AI coding tools, under Kai's direction; every change is tested on real schedules.
 
 ## Questions
 
