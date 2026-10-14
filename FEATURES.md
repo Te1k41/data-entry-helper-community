@@ -22,7 +22,7 @@ This guide describes what the extension currently does. Most Tradetech helpers r
 - **Port name reminder:** While an arrival or departure field has focus, shows the corresponding port name in a small floating label; it follows scrolling and disappears on blur.
 - **Region-entry highlighting:** Automatically highlights one significant port where the route enters the USA/Canada, Japan, EU, or UK. It prefers Tradetech's First USA/First EU fields when available, otherwise chooses from category changes in the port sequence.
 - **Manual ETD highlighting:** If the route loops back to its starting port, departure dates entered beyond that auto-sync boundary are highlighted as manual values.
-- **AWR helper:** On load and relevant port/radio changes, selects AWR Yes when the schedule calls a US port or the Panama Canal, unless the user has manually touched the AWR choice. It does not automatically change Yes back to No.
+- **AWR suggestion:** On load and relevant port/radio changes, suggests AWR = Yes when the schedule calls a US port AND transits the Panama Canal, or the service is on the always-AWR list (edit it with **⚙️ AWR Services** in Tools). It never changes AWR by itself: the warning has an **Apply** button, and only that click sets the radio.
 
 ## Vessel and voyage helpers
 
