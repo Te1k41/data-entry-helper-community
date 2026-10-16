@@ -26,26 +26,18 @@ const PortSyncBoundary = {
         return (directions.start || directions.end) ? directions : null;
     },
 
-    // Directional (one bound) = the route loops back to the port it started
-    // from. Full bound (two bound) wins outright when ANY SP*_port_key holds
-    // a real bound marker ("ES", "EEWS", "WE" — see parsePortKeyDirections),
-    // whatever the service code looks like. Otherwise either signal below
-    // is enough:
-    //  - the service code ends in a single letter ("AE1-E", "ABC-A"), or
-    //  - SP001_port_key is blank or has any non-letter character ("*", "E1"…).
-    // Anything else is a full-bound service. The one shared definition —
-    // port-highlighting.js reuses it.
+    // Decided by the Key column only. Full bound (2 bounds) = ANY
+    // SP*_port_key holds a real bound marker ("ES", "EEWS", "WE" — see
+    // parsePortKeyDirections). No marker anywhere = directional (1 bound):
+    // the route loops back to the port it started from. The service code's
+    // suffix ("AE1-E") plays no part. The one shared definition — port
+    // highlighting, save confirmation and fill-calc (via the schedule
+    // snapshot) all use it.
     // `doc`: the document holding the form — defaults to this frame's own;
     // the receipt passes the form frame's document (it can run elsewhere).
     isDirectionalService(doc = document) {
         const keyFields = doc.querySelectorAll('input[type="text"][name^="SP"][name$="_port_key"]');
-        if (Array.from(keyFields).some(f => this.parsePortKeyDirections(f.value))) return false;
-
-        const serviceField = doc.querySelector('input[type="text"][name="service"]');
-        if (/-[A-Z]$/i.test(serviceField ? serviceField.value.trim() : "")) return true;
-
-        const keyField = doc.querySelector('input[type="text"][name="SP001_port_key"]');
-        return !!keyField && !/^[A-Za-z]+$/.test(keyField.value.trim());
+        return !Array.from(keyFields).some(f => this.parsePortKeyDirections(f.value));
     },
 
     // Scans SP*_port_code fields top-to-bottom for repeats of the opening

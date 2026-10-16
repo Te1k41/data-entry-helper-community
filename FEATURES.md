@@ -35,7 +35,7 @@ This guide describes what the extension currently does. Most Tradetech helpers r
 - **Vessel recommendation:** Automatically suggests up to two vessels whose departure dates are closest to a calculated base date. The base uses today's date or the highlighted port and saved schedule offsets, and suggestions refresh when relevant fields change.
 - **Vessel name reminder:** While a vessel voyage or departure-date field has focus, shows that row's vessel name in a floating label.
 - **TBA shortcut:** Typing a single backtick in a vessel-name field changes it to `VESSEL TO BE ANNOUNCED` and fills an empty voyage with `TBN`. Clearing that placeholder also clears its unchanged `TBN` voyage.
-- **Voyage direction suffix:** The **Direction: ON/OFF** tool controls whether a bare voyage number receives the N/S/E/W suffix from a direction-suffixed service code when the voyage field changes.
+- **Voyage direction suffix:** The **Direction: ON/OFF** tool controls whether a bare voyage number on a 1-bound service (no bound marker in any Key) receives a direction letter when the voyage field changes: the letter most voyages on the page already use, else the service code's own suffix letter.
 - **Voyage step buttons:** Adds minus/plus controls beside voyage fields. A click changes every number in the code by one while preserving padding and text; Shift-click uses the page's voyage increment setting when valid.
 
 ## Date tools

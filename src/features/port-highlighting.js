@@ -8,8 +8,8 @@
 //  used: on confirmed routes AL5-W and GEX1 they point at the
 //  wrong port. That "priority pass" was also silently dead code.)
 //
-//  A "full bound" service (no -N/-S/-E/-W suffix on the service
-//  code) is really 2 legs run back-to-back. Tradetech marks the
+//  A "full bound" service (some SP*_port_key holds a bound marker —
+//  PortSyncBoundary.isDirectionalService) is really 2 legs run back-to-back. Tradetech marks the
 //  pivot between them on whichever port row's SP*_port_key first
 //  carries an End ("E") marker (e.g. SP003 = "EEWS": the East leg
 //  ENDS here, the West leg STARTs here). Highlighting for that
@@ -185,11 +185,9 @@ const PortHighlighting = {
         return PortSyncBoundary.parsePortKeyDirections(portKey);
     },
 
-    // Reads the `service` field and checks whether it ends with a
-    // trailing letter suffix (-A through -Z, case-insensitive — not just
-    // compass N/S/E/W, since services also use plain string letters like
-    // "-A"/"-B" for the same "loops back to its own start" naming). This
-    // flag decides how the route's window is cut (see run()).
+    // 1 bound (directional) vs 2 bounds, from the Key column
+    // (PortSyncBoundary.isDirectionalService). This flag decides how the
+    // route's window is cut (see run()).
     isDirectionalService() {
         const serviceField = document.querySelector('input[type="text"][name="service"]');
         const serviceValue = serviceField ? serviceField.value.trim() : "";
@@ -198,7 +196,7 @@ const PortHighlighting = {
         return isDirectional;
     },
 
-    // Full-bound service (no directional suffix): find the pivot row
+    // Full-bound service (bound markers in the Keys): find the pivot row
     // where the first leg ends. Scans every SP*_port_key field in row
     // order and returns the row number of the first one whose value
     // parses with an End ("E") marker — e.g. SP001="ES" (East-Start,
@@ -385,8 +383,8 @@ const PortHighlighting = {
         // port, which is wrong for a directional service where that port
         // can come up several times mid-route (see
         // excludeDirectionalClosure() above).
-        const suffixDirectional = this.isDirectionalService();
-        const stopRow = suffixDirectional ? null : PortSyncBoundary.getStopRow();
+        const directional = this.isDirectionalService();
+        const stopRow = directional ? null : PortSyncBoundary.getStopRow();
         if (stopRow) {
             portNameFields = portNameFields.filter(f => {
                 const match = f.name.match(/^SP(\d+)_port_name$/);
@@ -403,7 +401,7 @@ const PortHighlighting = {
             return;
         }
 
-        // Full-bound service (no suffix) = 2 legs run back-to-back.
+        // Full-bound service (bound markers in the Keys) = 2 legs run back-to-back.
         // Tradetech marks the pivot between them on whichever port
         // row's SP*_port_key first carries an End ("E") marker. Leg 2
         // is checked first and wins outright if it has any special
@@ -414,7 +412,7 @@ const PortHighlighting = {
         // rank contest let leg 1's Tacoma silently outrank the correct
         // leg-2 answer (Tokyo) — they must be scanned as 2 separate,
         // ranked attempts, not one combined candidate pool.
-        const pivotRow = suffixDirectional ? null : this.findFullBoundPivotRow();
+        const pivotRow = directional ? null : this.findFullBoundPivotRow();
         // Ties between same-rank candidates: the FIRST wins inside a full-bound
         // leg, the LAST everywhere else (one-bound and no-pivot routes). Confirmed
         // on AL5-W: EU->Miami and Panama->Los Angeles are both USA entries, and the
@@ -424,9 +422,9 @@ const PortHighlighting = {
         // Directional services loop back to their own start — drop the loop
         // closure (the real last port only) so it
         // can't count as a fake region-change candidate. Scoped to
-        // suffixDirectional only, not the broader biasFirst — a
+        // directional only, not the broader biasFirst — a
         // full-bound/pivot route isn't a same-origin loop.
-        if (suffixDirectional) portNameFields = this.excludeDirectionalClosure(portNameFields);
+        if (directional) portNameFields = this.excludeDirectionalClosure(portNameFields);
 
         // Only ever ONE port highlighted. Leg 2 is superior — if it
         // has its own special port, that's the answer, full stop, even
@@ -472,7 +470,7 @@ const PortHighlighting = {
                 || this.findHighlightInWindow(leg1Fields, true);
         } else {
             // One-bound service: its first port's region is "home" (see findHighlightInWindow).
-            const firstPort = suffixDirectional ? portNameFields.find(f => f.value.trim()) : null;
+            const firstPort = directional ? portNameFields.find(f => f.value.trim()) : null;
             const homeCat = firstPort ? this.getPortCategory(firstPort.value) : null;
             highlightField = this.findHighlightInWindow(portNameFields, biasFirst, null, homeCat);
         }

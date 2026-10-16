@@ -1,8 +1,8 @@
 // ─────────────────────────────────────────────────────
 //  FEATURE: Voyage Direction Suffix
-//  Auto-appends a letter to voyage codes when the `service`
-//  field ends in a trailing letter suffix (e.g. "ABC-N",
-//  "ABC-A" — not just compass N/S/E/W, any single letter).
+//  Auto-appends a letter to voyage codes on a 1-bound
+//  (directional) service — decided by the Key column
+//  (PortSyncBoundary.isDirectionalService), not the service code.
 //  Toggleable via an on-page button; starts OFF every page
 //  load — detecting that a service is directional doesn't
 //  mean the auto-append should already be running, only that
@@ -68,17 +68,15 @@ const VDirection = {
         // Only act on real SV*_start_voyage fields, not PV_ duplicates.
         if (!name.match(/^SV\d+_start_voyage$/) || name.startsWith("PV_")) return;
 
-        const serviceField = document.querySelector('input[name="service"]');
-        if (!serviceField) return;
-
-        // Look for a trailing letter suffix on the service code, e.g. "ABC-N"/"ABC-A".
-        const serviceMatch = serviceField.value.match(/-([A-Za-z])$/);
-        if (!serviceMatch) return; // not a directional service — do nothing
+        if (!PortSyncBoundary.isDirectionalService()) return; // 2 bounds — each bound has its own letter
 
         if (!value.trim()) return;        // nothing typed yet
         if (/[A-Za-z]/.test(value)) return; // already has a letter anywhere in it — don't touch it
 
-        const letter = this.mostCommonVoyageLetter() || serviceMatch[1].toUpperCase();
+        // Pattern from the voyages already entered, else the service code's own letter ("ABC-E").
+        const serviceMatch = (document.querySelector('input[name="service"]')?.value || "").trim().match(/-([A-Za-z])$/);
+        const letter = this.mostCommonVoyageLetter() || serviceMatch?.[1].toUpperCase();
+        if (!letter) return; // no pattern yet and no suffix letter to fall back on
 
         setFieldValue(target, value + letter);
     },
