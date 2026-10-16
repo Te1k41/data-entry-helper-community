@@ -27,7 +27,7 @@ const PortSyncBoundary = {
     },
 
     // Decided by the Key column only. Full bound (2 bounds) = ANY
-    // SP*_port_key holds a real bound marker ("ES", "EEWS", "WE" — see
+    // SP*_port_key holds a real bound marker ("ES", "WE", "NS", "SE", "EEWS", "SENS" — see
     // parsePortKeyDirections). No marker anywhere = directional (1 bound):
     // the route loops back to the port it started from. The service code's
     // suffix ("AE1-E") plays no part. The one shared definition — port
