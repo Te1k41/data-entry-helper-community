@@ -27,16 +27,38 @@
 
 const activeWarnings = {};
 
+// Banner text mixes our own markup (<br>, the Live Check / AWR buttons) with
+// text read off the page (port and vessel names). Parse it inert (a
+// <template> never runs scripts or loads images), then turn every tag outside
+// this short list into plain text and drop every attribute except style and
+// our own data-tt-* hooks — page text can never run code (QC finding F9).
+const SAFE_BANNER_TAGS = new Set(["BR", "B", "STRONG", "EM", "I", "SMALL", "SPAN", "DIV", "CODE", "BUTTON"]);
+function setSafeHtml(el, html) {
+    const template = document.createElement("template");
+    template.innerHTML = html;
+    for (const node of Array.from(template.content.querySelectorAll("*"))) {
+        if (!template.content.contains(node)) continue; // inside a tag already flattened
+        if (!SAFE_BANNER_TAGS.has(node.tagName)) {
+            node.replaceWith(document.createTextNode(node.textContent));
+            continue;
+        }
+        for (const attr of Array.from(node.attributes)) {
+            if (attr.name !== "style" && !attr.name.startsWith("data-tt-")) node.removeAttribute(attr.name);
+        }
+    }
+    el.replaceChildren(template.content);
+}
+
 function showBanner(options) {
     removeBanner();
 
     const div = document.createElement("div");
     div.id = "tt-banner";
 
-    div.innerHTML = `
+    setSafeHtml(div, `
         <div style="font-weight: bold; margin-bottom: 4px;">${options.title}</div>
         <div style="opacity: 1;">${options.message}</div>
-    `;
+    `);
 
     div.style.cssText = BANNER_STYLE;
 
@@ -175,10 +197,10 @@ function setInfoBanner(info) {
     const div = document.createElement("div");
     div.id = "tt-info-banner";
 
-    div.innerHTML = `
+    setSafeHtml(div, `
         <div style="font-weight: bold; margin-bottom: 4px; text-shadow: ${INFO_BANNER_TEXT_SHADOW};">${info.title}</div>
         <div style="font-weight: bold; font-size: 13px; text-shadow: ${INFO_BANNER_TEXT_SHADOW};">${info.message}</div>
-    `;
+    `);
 
     div.style.cssText = buildInfoStyle();
 
@@ -238,10 +260,10 @@ function setSuggestionBanner(info) {
     const div = document.createElement("div");
     div.id = "tt-suggestion-banner";
 
-    div.innerHTML = `
+    setSafeHtml(div, `
         <div style="font-weight: bold; margin-bottom: 4px;">${info.title}</div>
         <div>${info.message}</div>
-    `;
+    `);
 
     div.style.cssText = buildSuggestionStyle();
 
@@ -265,10 +287,10 @@ function showTemporaryBanner(options, durationMs = 3000) {
     const div = document.createElement("div");
     div.id = "tt-success-banner";
 
-    div.innerHTML = `
+    setSafeHtml(div, `
         <div style="font-weight: bold; margin-bottom: 4px;">${options.title}</div>
         <div style="opacity: 1;">${options.message}</div>
-    `;
+    `);
 
     div.style.cssText = buildSuccessStyle();
 
@@ -371,10 +393,10 @@ function showCombinedBanner(warnings) {
         </div>
     `).join("");
 
-    div.innerHTML = `
+    setSafeHtml(div, `
         <div style="font-weight: bold; margin-bottom: 6px;">🚢 ${warnings.length} issues found</div>
         ${items}
-    `;
+    `);
 
     div.style.cssText = BANNER_STYLE;
 

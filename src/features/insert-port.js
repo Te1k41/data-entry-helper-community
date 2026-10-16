@@ -41,14 +41,11 @@
 //  that same row's depart_date, clobbering the real depart_date we're
 //  about to write right after it) stays out of the way.
 //
-//  Row IDENTITY (which row is "the last one" for Insert's shift) is
-//  keyed by port_code, NOT port_name. Same identity model
-//  duplicate-vessel.js uses on the vessel side (Lloyds code there).
-//
-//  Delete's OCCUPANCY check is different: a row counts as "nothing to
-//  delete" only if BOTH port_code AND port_name are blank — code-only
-//  would silently no-op on a row that has a name (or other data) but
-//  no code yet, same blind spot fixed on the vessel side.
+//  Insert and Delete both use PortRow.isOccupied: a row holds data if
+//  ANY visible field does (code, name, dates, Key, location). That
+//  decides the last row a shift moves, the spare row Insert may fill,
+//  and "nothing to delete" — a Key-only row is never overwritten or
+//  left behind (QC F5).
 // ─────────────────────────────────────────────────────
 
 function portField(row, suffix) {
@@ -167,9 +164,9 @@ const InsertPort = {
     // even when there obviously is one. Same issue keyboard-navigation.js
     // already had to solve for the exact same reason (its own `width`
     // handling).
-    // "Filled" is decided by port_code, not port_name — see the file
-    // header. nameField is still kept here purely for the button's
-    // visual anchor point and human-readable labels.
+    // "Filled" is decided by PortRow.isOccupied — see the file header.
+    // nameField is kept here for the button's visual anchor point and
+    // human-readable labels.
     allRows() {
         return Array.from(document.querySelectorAll(this.SELECTOR))
             .map(nameField => {
@@ -182,12 +179,13 @@ const InsertPort = {
             .sort((a, b) => a.row - b.row);
     },
 
-    // Highest row number with a non-empty port_code — the last "real"
-    // port in the itinerary, regardless of gaps. Returns the whole row
-    // entry (not just the number) so its zero-padding width is still
-    // available to callers.
+    // Highest row number holding anything (PortRow.isOccupied — code, name,
+    // dates, Key or location), regardless of gaps, so a Key-only row is
+    // shifted with the rest instead of overwritten or skipped. Returns the
+    // whole row entry (not just the number) so its zero-padding width is
+    // still available to callers.
     findLastFilledRow() {
-        const filled = this.allRows().filter(r => r.codeField && r.codeField.value.trim());
+        const filled = this.allRows().filter(r => PortRow.isOccupied(r.rowStr));
         return filled.length ? filled.reduce((max, r) => r.row > max.row ? r : max) : null;
     },
 
@@ -210,7 +208,7 @@ const InsertPort = {
 
         const spareRow = lastFilled + 1;
         const spareField = portField(pad(spareRow), "port_code");
-        if (!spareField || spareField.value.trim()) {
+        if (!spareField || PortRow.isOccupied(pad(spareRow))) { // any field, not just the code (F5)
             showTemporaryBanner({ title: "➕ Insert failed", message: "No empty port row available to shift into." });
             return;
         }

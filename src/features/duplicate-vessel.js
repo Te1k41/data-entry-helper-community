@@ -209,12 +209,12 @@ const DuplicateVessel = {
             .sort((a, b) => parseInt(a.row, 10) - parseInt(b.row, 10));
     },
 
-    // A row counts as empty only if BOTH its Lloyds code and its name
-    // are blank. Code-only would wrongly call a "VESSEL TO BE ANNOUNCED"
-    // row (vessel-to-be-announced.js's backtick shortcut — name filled,
-    // no Lloyds code) empty and silently overwrite it.
+    // A row counts as empty only if code, name, voyage AND date are all
+    // blank (VesselRow.isEmpty). Code-only would wrongly call a "VESSEL TO
+    // BE ANNOUNCED" row (name filled, no Lloyds code) empty, and code+name
+    // a row holding only a voyage/date — then half overwritten (QC DV-02).
     findEmptyRow() {
-        return this.allRows().find(r => (!r.codeField || !r.codeField.value.trim()) && !r.nameField.value.trim());
+        return this.allRows().find(r => VesselRow.isEmpty(r.row));
     },
 
     duplicate(sourceNameField, chain) {

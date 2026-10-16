@@ -43,7 +43,10 @@ const PortRow = {
 
     isOccupied(row) {
         const values = typeof row === "object" ? row : this.read(row);
-        return [values.port_code, values.port_name, values.arrival_date, values.depart_date]
+        // Any visible entry counts — a row holding only a Key or location
+        // is still someone's data (QC finding F5).
+        return [values.port_code, values.port_name, values.arrival_date, values.depart_date,
+                values.port_key, values.locationCode, values.locationName]
             .some(value => String(value || "").trim());
     },
 
