@@ -52,15 +52,15 @@ const ManualEtdHighlight = {
     },
 
     // Re-run whenever a port code changes (the boundary itself can shift),
-    // the service code / SP001 key changes (they decide directional vs not,
-    // which moves the boundary) or any depart/arrival date changes.
+    // any Key changes (the Keys decide 1 bound vs 2 bounds, which moves the
+    // boundary) or any depart/arrival date changes.
     handle(event) {
         const { name } = event.target;
         if (!name) return;
 
         const relevant =
             name === "service" ||
-            name === "SP001_port_key" ||
+            /^SP\d+_port_key$/.test(name) ||
             /^SP\d+_port_code$/.test(name) ||
             /^SP\d+_depart_date$/.test(name) ||
             /^SP\d+_arrival_date$/.test(name);

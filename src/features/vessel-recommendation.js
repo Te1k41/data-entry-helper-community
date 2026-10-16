@@ -194,6 +194,7 @@ const VesselRecommendation = {
         const relevant =
             /^SP\d+_port_name$/.test(name)   ||
             /^SP\d+_port_code$/.test(name)   ||
+            /^SP\d+_port_key$/.test(name)    || // Keys move the highlight (bound type, pivot)
             /^SV\d+_vessel_name$/.test(name) ||
             /^SV\d+_depart_date$/.test(name) ||
             name === "service"               ||
